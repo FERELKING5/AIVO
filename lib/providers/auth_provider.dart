@@ -1,22 +1,29 @@
 import 'package:flutter/material.dart';
 
-class AuthProvider with ChangeNotifier {
-  bool _isAuthenticated = false;
-  String? _userId;
-  String? _userEmail;
+class AuthUser {
+  final String? id;
+  final String? email;
 
+  AuthUser({required this.id, required this.email});
+}
+
+class AuthProvider with ChangeNotifier {
+  AuthUser? _user;
+  bool _isAuthenticated = false;
+
+  AuthUser? get user => _user;
   bool get isAuthenticated => _isAuthenticated;
-  String? get userId => _userId;
-  String? get userEmail => _userEmail;
+  String? get userId => _user?.id;
+  String? get userEmail => _user?.email;
 
   Future<void> login(String email, String password) async {
     try {
       // TODO: Implement actual login logic
+      _user = AuthUser(id: 'user_123', email: email);
       _isAuthenticated = true;
-      _userEmail = email;
-      _userId = 'user_123';
       notifyListeners();
     } catch (e) {
+      _user = null;
       _isAuthenticated = false;
       rethrow;
     }
@@ -25,9 +32,8 @@ class AuthProvider with ChangeNotifier {
   Future<void> logout() async {
     try {
       // TODO: Implement actual logout logic
+      _user = null;
       _isAuthenticated = false;
-      _userId = null;
-      _userEmail = null;
       notifyListeners();
     } catch (e) {
       rethrow;
@@ -37,11 +43,11 @@ class AuthProvider with ChangeNotifier {
   Future<void> register(String email, String password) async {
     try {
       // TODO: Implement actual registration logic
+      _user = AuthUser(id: 'user_123', email: email);
       _isAuthenticated = true;
-      _userEmail = email;
-      _userId = 'user_123';
       notifyListeners();
     } catch (e) {
+      _user = null;
       _isAuthenticated = false;
       rethrow;
     }
