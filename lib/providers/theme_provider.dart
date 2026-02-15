@@ -75,10 +75,6 @@ class ThemeProvider extends ChangeNotifier {
         surface: const Color(0xFFF5F5F5),
         error: const Color(0xFFE74C3C),
       ),
-      cardTheme: const CardThemeData(
-        color: Colors.white,
-        elevation: 2,
-      ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           backgroundColor: primaryColor,
@@ -165,10 +161,6 @@ class ThemeProvider extends ChangeNotifier {
         secondary: const Color(0xFFFFA500),
         surface: const Color(0xFF2d2d2d),
         error: const Color(0xFFE74C3C),
-      ),
-      cardTheme: const CardThemeData(
-        color: Color(0xFF2d2d2d),
-        elevation: 2,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
