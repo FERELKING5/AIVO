@@ -29,6 +29,11 @@ jobs:
     - name: Export FLUTTER_ROOT
       run: echo "FLUTTER_ROOT=$(dirname $(dirname $(which flutter)))" >> $GITHUB_ENV
 
+    - name: Create local.properties
+      run: |
+        echo "flutter.sdk=$(dirname $(dirname $(which flutter)))" > android/local.properties
+        cat android/local.properties
+
     - name: Clean Flutter
       run: flutter clean
 
