@@ -10,7 +10,7 @@ import 'components/product_images.dart';
 import 'components/top_rounded_container.dart';
 
 class DetailsScreen extends StatelessWidget {
-  static String routeName = "/details";
+  static const String routeName = "/details";
 
   const DetailsScreen({super.key});
 

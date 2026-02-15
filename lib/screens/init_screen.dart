@@ -10,7 +10,7 @@ const Color inActiveIconColor = Color(0xFFB6B6B6);
 class InitScreen extends StatefulWidget {
   const InitScreen({super.key});
 
-  static String routeName = "/";
+  static const String routeName = "/";
 
   @override
   State<InitScreen> createState() => _InitScreenState();

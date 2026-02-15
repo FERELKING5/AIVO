@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:aivo/screens/init_screen.dart';
 
 class LoginSuccessScreen extends StatelessWidget {
-  static String routeName = "/login_success";
+  static const String routeName = "/login_success";
 
   const LoginSuccessScreen({super.key});
   @override

@@ -5,7 +5,7 @@ import '../../components/socal_card.dart';
 import 'components/sign_form.dart';
 
 class SignInScreen extends StatelessWidget {
-  static String routeName = "/sign_in";
+  static const String routeName = "/sign_in";
 
   const SignInScreen({super.key});
   @override

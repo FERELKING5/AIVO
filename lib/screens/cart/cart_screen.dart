@@ -6,7 +6,7 @@ import 'components/cart_card.dart';
 import 'components/check_out_card.dart';
 
 class CartScreen extends StatefulWidget {
-  static String routeName = "/cart";
+  static const String routeName = "/cart";
 
   const CartScreen({super.key});
 

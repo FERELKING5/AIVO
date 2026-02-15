@@ -4,7 +4,7 @@ import '../../constants.dart';
 import 'components/complete_profile_form.dart';
 
 class CompleteProfileScreen extends StatelessWidget {
-  static String routeName = "/complete_profile";
+  static const String routeName = "/complete_profile";
 
   const CompleteProfileScreen({super.key});
   @override

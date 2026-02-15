@@ -7,7 +7,7 @@ import 'components/popular_product.dart';
 import 'components/special_offers.dart';
 
 class HomeScreen extends StatelessWidget {
-  static String routeName = "/home";
+  static const String routeName = "/home";
 
   const HomeScreen({super.key});
   @override

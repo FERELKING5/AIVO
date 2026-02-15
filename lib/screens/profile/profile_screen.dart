@@ -6,7 +6,7 @@ import 'components/profile_menu.dart';
 import 'components/profile_pic.dart';
 
 class ProfileScreen extends StatelessWidget {
-  static String routeName = "/profile";
+  static const String routeName = "/profile";
 
   const ProfileScreen({super.key});
   @override
