@@ -1,3 +1,10 @@
-/android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
-*.gradle
+# Flutter build generated files
+android/app/src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java
 *GeneratedPluginRegistrant*
+.gradle
+build/
+.flutter-plugins-dependencies
+.flutter-plugins
+*.gradle
+local.properties
+GeneratedPluginRegistrant.java
