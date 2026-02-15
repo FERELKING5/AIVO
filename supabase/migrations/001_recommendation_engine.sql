@@ -1,9 +1,11 @@
 -- ============================================
--- Recommendation Engine Schema
+-- Recommendation Engine Schema - SIMPLIFIED
+-- Execute this FIRST before 002_recommendation_engine_rpc.sql
 -- ============================================
 
--- 1. CATEGORIES (if not exists)
-CREATE TABLE IF NOT EXISTS categories (
+-- 1. CATEGORIES
+DROP TABLE IF EXISTS categories CASCADE;
+CREATE TABLE categories (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL UNIQUE,
   description text,
@@ -12,7 +14,8 @@ CREATE TABLE IF NOT EXISTS categories (
 );
 
 -- 2. PRODUCTS
-CREATE TABLE IF NOT EXISTS products (
+DROP TABLE IF EXISTS products CASCADE;
+CREATE TABLE products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   description text,
@@ -29,23 +32,15 @@ CREATE TABLE IF NOT EXISTS products (
   updated_at timestamptz DEFAULT now()
 );
 
--- Add active column if it doesn't exist (for existing tables)
-DO $$
-BEGIN
-  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='products' AND column_name='active') THEN
-    ALTER TABLE products ADD COLUMN active boolean DEFAULT true;
-  END IF;
-END
-$$;
+-- Indexes on products
+CREATE INDEX idx_products_category_id ON products(category_id);
+CREATE INDEX idx_products_created_at ON products(created_at DESC);
+CREATE INDEX idx_products_brand ON products(brand);
+CREATE INDEX idx_products_tags ON products USING GIN(tags);
 
-CREATE INDEX IF NOT EXISTS idx_products_category_id ON products(category_id);
-CREATE INDEX IF NOT EXISTS idx_products_active_stock ON products(active, stock) WHERE active = true AND stock > 0;
-CREATE INDEX IF NOT EXISTS idx_products_created_at ON products(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_products_brand ON products(brand);
-CREATE INDEX IF NOT EXISTS idx_products_tags ON products USING GIN(tags);
-
--- 3. EVENTS (core tracking)
-CREATE TABLE IF NOT EXISTS events (
+-- 3. EVENTS
+DROP TABLE IF EXISTS events CASCADE;
+CREATE TABLE events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid,
   session_id text,
@@ -59,14 +54,18 @@ CREATE TABLE IF NOT EXISTS events (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_events_user_id_ts ON events(user_id, ts DESC) WHERE user_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_events_product_id_ts ON events(product_id, ts DESC) WHERE product_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_events_event_type_ts ON events(event_type, ts DESC);
-CREATE INDEX IF NOT EXISTS idx_events_session_id_ts ON events(session_id, ts DESC) WHERE session_id IS NOT NULL;
-CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts DESC);
+-- Indexes on events
+CREATE INDEX idx_events_user_id_ts ON events(user_id, ts DESC) WHERE user_id IS NOT NULL;
+CREATE INDEX idx_events_product_id_ts ON events(product_id, ts DESC) WHERE product_id IS NOT NULL;
+CREATE INDEX idx_events_event_type_ts ON events(event_type, ts DESC);
+CREATE INDEX idx_events_session_id_ts ON events(session_id, ts DESC) WHERE session_id IS NOT NULL;
+CREATE INDEX idx_events_ts ON events(ts DESC);
 
--- 4. ORDERS & ORDER_ITEMS (for co-occurrence and budget tracking)
-CREATE TABLE IF NOT EXISTS orders (
+-- 4. ORDERS & ORDER_ITEMS
+DROP TABLE IF EXISTS order_items CASCADE;
+DROP TABLE IF EXISTS orders CASCADE;
+
+CREATE TABLE orders (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid,
   total numeric NOT NULL,
@@ -76,9 +75,9 @@ CREATE TABLE IF NOT EXISTS orders (
   updated_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_orders_user_id_created_at ON orders(user_id, created_at DESC) WHERE user_id IS NOT NULL;
+CREATE INDEX idx_orders_user_id_created_at ON orders(user_id, created_at DESC) WHERE user_id IS NOT NULL;
 
-CREATE TABLE IF NOT EXISTS order_items (
+CREATE TABLE order_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id uuid NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
   product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -87,11 +86,12 @@ CREATE TABLE IF NOT EXISTS order_items (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_order_items_product_id ON order_items(product_id);
-CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+CREATE INDEX idx_order_items_product_id ON order_items(product_id);
+CREATE INDEX idx_order_items_order_id ON order_items(order_id);
 
--- 5. USER_PROFILES (materialized, updated by batch job)
-CREATE TABLE IF NOT EXISTS user_profiles (
+-- 5. USER_PROFILES
+DROP TABLE IF EXISTS user_profiles CASCADE;
+CREATE TABLE user_profiles (
   user_id uuid PRIMARY KEY,
   country text,
   city text,
@@ -104,8 +104,9 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   updated_at timestamptz DEFAULT now()
 );
 
--- 6. PRODUCT_AFFINITIES (manual + extensible)
-CREATE TABLE IF NOT EXISTS product_affinities (
+-- 6. PRODUCT_AFFINITIES
+DROP TABLE IF EXISTS product_affinities CASCADE;
+CREATE TABLE product_affinities (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   source_product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   target_product_id uuid REFERENCES products(id) ON DELETE SET NULL,
@@ -118,12 +119,13 @@ CREATE TABLE IF NOT EXISTS product_affinities (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_product_affinities_source ON product_affinities(source_product_id, active);
-CREATE INDEX IF NOT EXISTS idx_product_affinities_target_product ON product_affinities(target_product_id);
-CREATE INDEX IF NOT EXISTS idx_product_affinities_reason ON product_affinities(reason);
+CREATE INDEX idx_product_affinities_source ON product_affinities(source_product_id, active);
+CREATE INDEX idx_product_affinities_target_product ON product_affinities(target_product_id);
+CREATE INDEX idx_product_affinities_reason ON product_affinities(reason);
 
--- 7. PRODUCT_PAIRS (co-occurrence batch)
-CREATE TABLE IF NOT EXISTS product_pairs (
+-- 7. PRODUCT_PAIRS
+DROP TABLE IF EXISTS product_pairs CASCADE;
+CREATE TABLE product_pairs (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
   paired_product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -133,11 +135,12 @@ CREATE TABLE IF NOT EXISTS product_pairs (
   UNIQUE(product_id, paired_product_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_product_pairs_product_id ON product_pairs(product_id, score DESC);
-CREATE INDEX IF NOT EXISTS idx_product_pairs_updated_at ON product_pairs(updated_at DESC);
+CREATE INDEX idx_product_pairs_product_id ON product_pairs(product_id, score DESC);
+CREATE INDEX idx_product_pairs_updated_at ON product_pairs(updated_at DESC);
 
--- 8. TRENDING_PRODUCTS (per zone + category)
-CREATE TABLE IF NOT EXISTS trending_products (
+-- 8. TRENDING_PRODUCTS
+DROP TABLE IF EXISTS trending_products CASCADE;
+CREATE TABLE trending_products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   country text NOT NULL,
   city text,
@@ -148,12 +151,13 @@ CREATE TABLE IF NOT EXISTS trending_products (
   UNIQUE(country, city, category_id, product_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_trending_products_country_dt ON trending_products(country, updated_at DESC);
-CREATE INDEX IF NOT EXISTS idx_trending_products_country_city_dt ON trending_products(country, city, updated_at DESC);
-CREATE INDEX IF NOT EXISTS idx_trending_products_category ON trending_products(category_id) WHERE category_id IS NOT NULL;
+CREATE INDEX idx_trending_products_country_dt ON trending_products(country, updated_at DESC);
+CREATE INDEX idx_trending_products_country_city_dt ON trending_products(country, city, updated_at DESC);
+CREATE INDEX idx_trending_products_category ON trending_products(category_id) WHERE category_id IS NOT NULL;
 
--- 9. USER_RECENT_RECOMMENDATIONS (cache for diversity)
-CREATE TABLE IF NOT EXISTS user_recent_recommendations (
+-- 9. USER_RECENT_RECOMMENDATIONS
+DROP TABLE IF EXISTS user_recent_recommendations CASCADE;
+CREATE TABLE user_recent_recommendations (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -162,10 +166,11 @@ CREATE TABLE IF NOT EXISTS user_recent_recommendations (
   created_at timestamptz DEFAULT now()
 );
 
-CREATE INDEX IF NOT EXISTS idx_user_recent_recos_user_id_ts ON user_recent_recommendations(user_id, recommended_at DESC);
+CREATE INDEX idx_user_recent_recos_user_id_ts ON user_recent_recommendations(user_id, recommended_at DESC);
 
--- 10. WISHLISTS (optional but useful)
-CREATE TABLE IF NOT EXISTS wishlists (
+-- 10. WISHLISTS
+DROP TABLE IF EXISTS wishlists CASCADE;
+CREATE TABLE wishlists (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL,
   product_id uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
@@ -173,4 +178,7 @@ CREATE TABLE IF NOT EXISTS wishlists (
   UNIQUE(user_id, product_id)
 );
 
-CREATE INDEX IF NOT EXISTS idx_wishlists_user_id ON wishlists(user_id);
+CREATE INDEX idx_wishlists_user_id ON wishlists(user_id);
+
+-- Done! All tables created successfully.
+-- Next: Execute 002_recommendation_engine_rpc.sql
