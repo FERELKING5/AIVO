@@ -11,7 +11,6 @@
         "flutter",
         "flutter_localizations",
         "flutter_svg",
-        "intl",
         "provider",
         "supabase_flutter"
       ],
@@ -62,15 +61,6 @@
         "supabase",
         "url_launcher",
         "webview_flutter"
-      ]
-    },
-    {
-      "name": "intl",
-      "version": "0.20.2",
-      "dependencies": [
-        "clock",
-        "meta",
-        "path"
       ]
     },
     {
@@ -355,6 +345,15 @@
       "dependencies": [
         "flutter",
         "vector_graphics_codec"
+      ]
+    },
+    {
+      "name": "intl",
+      "version": "0.20.2",
+      "dependencies": [
+        "clock",
+        "meta",
+        "path"
       ]
     },
     {
